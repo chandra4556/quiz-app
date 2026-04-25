@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Quiz App</title>
+</head>
+<body>
+
+<h2>Quiz App</h2>
+<input id="name" placeholder="Enter name">
+<button onclick="start()">Start</button>
+
+<div id="quiz"></div>
+
+<script>
+let q=[],i=0,s=0;
+
+async function start(){
+let name=document.getElementById("name").value;
+localStorage.setItem("user",name);
+
+let res=await fetch("https://opentdb.com/api.php?amount=5");
+let data=await res.json();
+
+q=data.results;
+load();
+}
+
+function load(){
+let d=q[i];
+document.getElementById("quiz").innerHTML=`
+<h3>${d.question}</h3>
+<button onclick="ans('${d.correct_answer}')">Correct</button>
+<button onclick="ans('x')">Wrong</button>
+`;
+}
+
+function ans(a){
+if(a===q[i].correct_answer)s++;
+i++;
+if(i<q.length)load();
+else finish();
+}
+
+async function finish(){
+let user=localStorage.getItem("user");
+
+await fetch("http://localhost:5000/save-score",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({user,score:s})
+});
+
+document.getElementById("quiz").innerHTML=`Score: ${s}`;
+}
+</script>
+
+</body>
+</html>
